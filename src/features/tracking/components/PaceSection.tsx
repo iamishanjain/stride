@@ -7,10 +7,15 @@ import { formatPace } from '../services/ActivityAnalytics';
 export function PaceSection({ activity }: { activity: Activity }) {
   const average = activity.elapsedSeconds / (activity.distanceMeters / 1000);
   const movingTime = activity.elapsedSeconds;
-  const bars = Array.from({ length: 28 }, (_, index) => {
-    const variation = 0.72 + (Math.sin(index * 1.7) + 1) * 0.18 + (index % 7 === 0 ? 0.2 : 0);
-    return Math.min(1, Math.max(0.2, variation));
-  });
+  const bars = activity.points.length > 1
+    ? activity.points.slice(1).map((point, index) => {
+        const previous = activity.points[index];
+        const elapsed = Math.max(1, (point.timestamp - previous.timestamp) / 1000);
+        const pace = elapsed / (1 / 1000);
+        const normalized = 1 - Math.min(0.8, Math.max(0, (pace - 180) / 300));
+        return Math.min(1, Math.max(0.15, normalized));
+      }).slice(-40)
+    : Array.from({ length: 28 }, () => 0.5);
 
   return (
     <View style={styles.section}>
