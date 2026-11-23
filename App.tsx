@@ -7,8 +7,19 @@ import { TrackingControls } from './src/features/tracking/components/TrackingCon
 import { GPSStatusIndicator } from './src/features/tracking/components/GPSStatusIndicator';
 import { useTracking } from './src/features/tracking/hooks/useTracking';
 import { storeToActivity, useTrackingStore } from './src/features/tracking/state/trackingStore';
-import { saveActivity, saveActivityMetadata } from './src/database/repositories/ActivityRepository';
+import { getRecentActivities, saveActivity, saveActivityMetadata } from './src/database/repositories/ActivityRepository';
+import { Activity } from './src/features/tracking/types/tracking.types';
 import './src/features/tracking/services/BackgroundLocationTask';
+
+function formatElapsed(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    : `${minutes}:${String(secs).padStart(2, '0')}`;
+}
 
 export default function App() {
   const status = useTrackingStore((state) => state.status);
@@ -16,6 +27,7 @@ export default function App() {
   const distanceMeters = useTrackingStore((state) => state.distanceMeters);
   const elapsedSeconds = useTrackingStore((state) => state.elapsedSeconds);
   const accuracy = useTrackingStore((state) => state.accuracy);
+  const currentLocation = useTrackingStore((state) => state.currentLocation);
   const lastError = useTrackingStore((state) => state.lastError);
   const start = useTrackingStore((state) => state.start);
   const pause = useTrackingStore((state) => state.pause);
@@ -24,7 +36,21 @@ export default function App() {
   const complete = useTrackingStore((state) => state.complete);
   const reset = useTrackingStore((state) => state.reset);
   const setElapsedSeconds = useTrackingStore((state) => state.setElapsedSeconds);
+  const [recentRuns, setRecentRuns] = React.useState<Activity[]>([]);
   useTracking();
+
+  useEffect(() => {
+    void getRecentActivities()
+      .then(setRecentRuns)
+      .catch((error: unknown) => useTrackingStore.getState().setError(error instanceof Error ? error.message : 'Unable to load previous runs.'));
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'finished') return;
+    void getRecentActivities()
+      .then(setRecentRuns)
+      .catch((error: unknown) => useTrackingStore.getState().setError(error instanceof Error ? error.message : 'Unable to load previous runs.'));
+  }, [status]);
 
   useEffect(() => {
     const state = useTrackingStore.getState();
@@ -59,7 +85,6 @@ export default function App() {
       .catch((error: unknown) => useTrackingStore.getState().setError(error instanceof Error ? error.message : 'Unable to save this run.'));
   }, [status, complete]);
 
-  const currentLocation = points.at(-1) ?? null;
   const title = status === 'finished' ? 'Run complete' : status === 'idle' ? 'Ready to run?' : status === 'paused' ? 'Run paused' : 'You’re moving';
 
   return (
@@ -71,6 +96,23 @@ export default function App() {
         <GPSStatusIndicator accuracy={accuracy} error={lastError} />
         <TrackingStats distanceMeters={distanceMeters} elapsedSeconds={elapsedSeconds} />
         <TrackingControls status={status} onStart={start} onPause={pause} onResume={resume} onFinish={finish} onNew={reset} />
+        {recentRuns.length > 0 && (
+          <View style={styles.history}>
+            <Text style={styles.historyTitle}>Previous runs</Text>
+            {recentRuns.map((run) => (
+              <View key={run.id} style={styles.runCard}>
+                <View>
+                  <Text style={styles.runDate}>{new Date(run.startedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                  <Text style={styles.runTime}>{new Date(run.startedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</Text>
+                </View>
+                <View style={styles.runMetrics}>
+                  <Text style={styles.runMetric}>{(run.distanceMeters / 1000).toFixed(2)} km</Text>
+                  <Text style={styles.runTime}>{formatElapsed(run.elapsedSeconds)}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
         <Text style={styles.caption}>Foreground GPS tracking is active. Background tracking requires a development build and additional platform testing.</Text>
       </ScrollView>
     </SafeAreaView>
@@ -85,5 +127,12 @@ const styles = StyleSheet.create({
   title: { color: '#F3F7F4', fontSize: 28, fontWeight: '700', marginTop: 4 },
   status: { color: '#728077', fontSize: 11, letterSpacing: 1 },
   mapWrap: { height: 360 },
+  history: { marginTop: 4 },
+  historyTitle: { color: '#F3F7F4', fontSize: 18, fontWeight: '700', marginBottom: 10 },
+  runCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#121916', borderRadius: 16, padding: 14, marginBottom: 8 },
+  runDate: { color: '#F3F7F4', fontSize: 15, fontWeight: '700' },
+  runTime: { color: '#8D9A92', fontSize: 12, marginTop: 3 },
+  runMetrics: { alignItems: 'flex-end' },
+  runMetric: { color: '#58D68D', fontSize: 16, fontWeight: '800' },
   caption: { color: '#65736A', fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 20 },
 });

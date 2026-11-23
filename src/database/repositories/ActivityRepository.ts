@@ -41,3 +41,57 @@ export async function appendGPSPoint(activityId: string, point: Activity['points
     point.accuracy ?? null, point.speed ?? null, point.heading ?? null,
   );
 }
+
+export async function getRecentActivities(limit = 20): Promise<Activity[]> {
+  const db = await getDatabase();
+  const activities = await db.getAllAsync<{
+    id: string;
+    started_at: number;
+    ended_at: number | null;
+    distance_meters: number;
+    elapsed_seconds: number;
+    status: string;
+  }>(
+    `SELECT id, started_at, ended_at, distance_meters, elapsed_seconds, status
+     FROM activities
+     WHERE status = 'finished'
+     ORDER BY started_at DESC
+     LIMIT ?`,
+    limit,
+  );
+
+  return Promise.all(activities.map(async (activity) => {
+    const rows = await db.getAllAsync<{
+      latitude: number;
+      longitude: number;
+      timestamp: number;
+      altitude: number | null;
+      accuracy: number | null;
+      speed: number | null;
+      heading: number | null;
+    }>(
+      `SELECT latitude, longitude, timestamp, altitude, accuracy, speed, heading
+       FROM gps_points
+       WHERE activity_id = ?
+       ORDER BY timestamp ASC`,
+      activity.id,
+    );
+    return {
+      id: activity.id,
+      startedAt: activity.started_at,
+      endedAt: activity.ended_at ?? undefined,
+      distanceMeters: activity.distance_meters,
+      elapsedSeconds: activity.elapsed_seconds,
+      status: 'finished',
+      points: rows.map((row) => ({
+        latitude: row.latitude,
+        longitude: row.longitude,
+        timestamp: row.timestamp,
+        altitude: row.altitude,
+        accuracy: row.accuracy,
+        speed: row.speed,
+        heading: row.heading,
+      })),
+    };
+  }));
+}

@@ -11,6 +11,7 @@ type TrackingStore = {
   distanceMeters: number;
   elapsedSeconds: number;
   accuracy: number | null;
+  currentLocation: GPSPoint | null;
   lastError: string | null;
   start: () => void;
   pause: () => void;
@@ -19,6 +20,7 @@ type TrackingStore = {
   complete: () => void;
   addPoint: (point: GPSPoint, distanceMeters: number) => void;
   setElapsedSeconds: (seconds: number) => void;
+  setCurrentLocation: (point: GPSPoint) => void;
   setError: (message: string | null) => void;
   reset: () => void;
 };
@@ -33,6 +35,7 @@ const initialState = {
   distanceMeters: 0,
   elapsedSeconds: 0,
   accuracy: null,
+  currentLocation: null,
   lastError: null,
 };
 
@@ -69,6 +72,8 @@ export const useTrackingStore = create<TrackingStore>((set) => ({
       ? { points: [...state.points, point], distanceMeters: state.distanceMeters + distanceMeters, accuracy: point.accuracy ?? null }
       : state)),
   setElapsedSeconds: (elapsedSeconds) => set({ elapsedSeconds }),
+  setCurrentLocation: (currentLocation) =>
+    set({ currentLocation, accuracy: currentLocation.accuracy ?? null }),
   setError: (lastError) => set({ lastError }),
   reset: () => set(initialState),
 }));
