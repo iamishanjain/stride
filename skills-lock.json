@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "panelui": {
+      "source": "panel-ui/PanelUI",
+      "commit": "72d735114411b84fd18484311077aabe7cbc3521",
+      "sourceType": "github",
+      "skillPath": "skills/panelui/SKILL.md",
+      "computedHash": "ecace39f56f4e26eab1a5b98d0e7da28607673ab8d5f9f3f3d0c8d7e70e646d6"
+    }
+  }
+}
