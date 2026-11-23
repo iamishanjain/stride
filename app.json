@@ -2,6 +2,7 @@
   "expo": {
     "name": "stride",
     "slug": "stride",
+    "scheme": "stride",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,7 +14,10 @@
       }
     },
     "android": {
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -32,7 +36,8 @@
         {
           "locationWhenInUsePermission": "Allow Stride to use your location while you run."
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

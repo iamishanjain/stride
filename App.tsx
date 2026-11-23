@@ -9,17 +9,12 @@ import { useTracking } from './src/features/tracking/hooks/useTracking';
 import { storeToActivity, useTrackingStore } from './src/features/tracking/state/trackingStore';
 import { getRecentActivities, saveActivity, saveActivityMetadata } from './src/database/repositories/ActivityRepository';
 import { Activity } from './src/features/tracking/types/tracking.types';
+import { ActivityCard } from './src/features/tracking/components/ActivityCard';
+import { ActivityDetail } from './src/features/tracking/components/ActivityDetail';
+import { GoogleSignIn } from './src/features/profile/components/GoogleSignIn';
+import { GoogleProfile } from './src/features/profile/types/profile.types';
+import { getGoogleProfile, saveGoogleProfile } from './src/features/profile/repositories/ProfileRepository';
 import './src/features/tracking/services/BackgroundLocationTask';
-
-function formatElapsed(seconds: number): string {
-  const total = Math.max(0, Math.floor(seconds));
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  return hours > 0
-    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-    : `${minutes}:${String(secs).padStart(2, '0')}`;
-}
 
 export default function App() {
   const status = useTrackingStore((state) => state.status);
@@ -37,7 +32,18 @@ export default function App() {
   const reset = useTrackingStore((state) => state.reset);
   const setElapsedSeconds = useTrackingStore((state) => state.setElapsedSeconds);
   const [recentRuns, setRecentRuns] = React.useState<Activity[]>([]);
+  const [profile, setProfile] = React.useState<GoogleProfile | null>(null);
+  const [selectedActivity, setSelectedActivity] = React.useState<Activity | null>(null);
   useTracking();
+
+  useEffect(() => {
+    void getGoogleProfile().then(setProfile).catch(() => undefined);
+  }, []);
+
+  const handleProfile = React.useCallback((nextProfile: GoogleProfile) => {
+    setProfile(nextProfile);
+    void saveGoogleProfile(nextProfile).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     void getRecentActivities()
@@ -87,11 +93,21 @@ export default function App() {
 
   const title = status === 'finished' ? 'Run complete' : status === 'idle' ? 'Ready to run?' : status === 'paused' ? 'Run paused' : 'You’re moving';
 
+  if (selectedActivity) {
+    return (
+      <SafeAreaView style={styles.safeLight}>
+        <StatusBar style="dark" />
+        <ActivityDetail activity={selectedActivity} profile={profile} onBack={() => setSelectedActivity(null)} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}><View><Text style={styles.eyebrow}>STRIDE</Text><Text style={styles.title}>{title}</Text></View><Text style={styles.status}>{status.toUpperCase()}</Text></View>
+        <View style={styles.profileRow}><GoogleSignIn profile={profile} onProfile={handleProfile} /></View>
         <View style={styles.mapWrap}><TrackingMap points={points} currentLocation={currentLocation} finished={status === 'finished'} /></View>
         <GPSStatusIndicator accuracy={accuracy} error={lastError} />
         <TrackingStats distanceMeters={distanceMeters} elapsedSeconds={elapsedSeconds} />
@@ -100,16 +116,12 @@ export default function App() {
           <View style={styles.history}>
             <Text style={styles.historyTitle}>Previous runs</Text>
             {recentRuns.map((run) => (
-              <View key={run.id} style={styles.runCard}>
-                <View>
-                  <Text style={styles.runDate}>{new Date(run.startedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
-                  <Text style={styles.runTime}>{new Date(run.startedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</Text>
-                </View>
-                <View style={styles.runMetrics}>
-                  <Text style={styles.runMetric}>{(run.distanceMeters / 1000).toFixed(2)} km</Text>
-                  <Text style={styles.runTime}>{formatElapsed(run.elapsedSeconds)}</Text>
-                </View>
-              </View>
+              <ActivityCard
+                key={run.id}
+                activity={run}
+                profile={profile}
+                onPress={() => setSelectedActivity(run)}
+              />
             ))}
           </View>
         )}
@@ -121,12 +133,14 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0B100D' },
+  safeLight: { flex: 1, backgroundColor: '#F4F5F2' },
   content: { padding: 20, paddingBottom: 36, flexGrow: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18 },
   eyebrow: { color: '#58D68D', fontWeight: '800', letterSpacing: 2, fontSize: 12 },
   title: { color: '#F3F7F4', fontSize: 28, fontWeight: '700', marginTop: 4 },
   status: { color: '#728077', fontSize: 11, letterSpacing: 1 },
   mapWrap: { height: 360 },
+  profileRow: { marginBottom: 14, alignItems: 'flex-start' },
   history: { marginTop: 4 },
   historyTitle: { color: '#F3F7F4', fontSize: 18, fontWeight: '700', marginBottom: 10 },
   runCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#121916', borderRadius: 16, padding: 14, marginBottom: 8 },

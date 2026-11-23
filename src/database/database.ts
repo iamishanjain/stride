@@ -29,6 +29,12 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       );
       CREATE INDEX IF NOT EXISTS gps_points_activity_timestamp
         ON gps_points(activity_id, timestamp);
+      CREATE TABLE IF NOT EXISTS user_profile (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT,
+        email TEXT,
+        photo TEXT
+      );
     `);
   }
   return database;
