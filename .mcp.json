@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "panelui": {
+      "command": "npx",
+      "args": ["-y", "panelui-cli@latest", "mcp"]
+    }
+  }
+}
