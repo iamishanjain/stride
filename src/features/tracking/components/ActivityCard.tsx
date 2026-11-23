@@ -1,8 +1,10 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { Activity } from '../types/tracking.types';
 import { GoogleProfile } from '../../profile/types/profile.types';
 import { formatPace } from '../services/ActivityAnalytics';
+import { palette, radii } from '../../../ui/theme';
+import { PressableScale } from '../../../ui/UiComponents';
 
 type Props = {
   activity: Activity;
@@ -24,7 +26,7 @@ export function ActivityCard({ activity, profile, onPress }: Props) {
   const pace = activity.elapsedSeconds / (activity.distanceMeters / 1000);
   const date = new Date(activity.startedAt);
   return (
-    <Pressable onPress={onPress} style={styles.card}>
+    <PressableScale onPress={onPress} style={styles.card}>
       <View style={styles.profileRow}>
         {profile?.photo ? (
           <Image source={{ uri: profile.photo }} style={styles.avatar} />
@@ -42,12 +44,12 @@ export function ActivityCard({ activity, profile, onPress }: Props) {
         <View style={styles.stat}><Text style={styles.statLabel}>Pace</Text><Text style={styles.statValue}>{formatPace(pace)} /km</Text></View>
         <View style={styles.stat}><Text style={styles.statLabel}>Time</Text><Text style={styles.statValue}>{formatDuration(activity.elapsedSeconds)}</Text></View>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18, marginBottom: 14 },
+  card: { backgroundColor: palette.surface, borderRadius: radii.lg, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: palette.line },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 48, height: 48, borderRadius: 24 },
   avatarFallback: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#58D68D', alignItems: 'center', justifyContent: 'center' },

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, Region, MapType } from 'react-native-maps';
 import { Coordinate, GPSPoint } from '../types/tracking.types';
+import { palette } from '../../../ui/theme';
 
 type Props = {
   points: GPSPoint[];
@@ -46,7 +47,7 @@ export function TrackingMap({ points, currentLocation, finished }: Props) {
         mapType={mapType}
         showsUserLocation={Boolean(currentLocation)}
       >
-        {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor="#FC5201" strokeWidth={5} />}
+        {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor={palette.coral} strokeWidth={6} />}
         {currentLocation && (
           <Marker coordinate={currentLocation} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
             <View style={styles.locationMarker}>
@@ -55,7 +56,7 @@ export function TrackingMap({ points, currentLocation, finished }: Props) {
             </View>
           </Marker>
         )}
-        {coordinates[0] && <Marker coordinate={coordinates[0]} pinColor="#58D68D" title="Start" />}
+        {coordinates[0] && <Marker coordinate={coordinates[0]} pinColor={palette.limeStrong} title="Start" />}
         {finished && coordinates.length > 1 && <Marker coordinate={coordinates[coordinates.length - 1]} pinColor="#F97068" title="Finish" />}
       </MapView>
       <View style={styles.mapTypeControl} accessibilityRole="radiogroup" accessibilityLabel="Map type">

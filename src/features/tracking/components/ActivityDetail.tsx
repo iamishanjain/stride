@@ -7,6 +7,8 @@ import { formatDuration } from './ActivityCard';
 import { calculateSplits, formatPace, getElevationStats } from '../services/ActivityAnalytics';
 import { SplitsSection } from './SplitsSection';
 import { PaceSection } from './PaceSection';
+import { palette, radii } from '../../../ui/theme';
+import { Card, PressableScale, SectionTitle } from '../../../ui/UiComponents';
 
 type Props = { activity: Activity; profile: GoogleProfile | null; onBack: () => void };
 
@@ -29,9 +31,9 @@ export function ActivityDetail({ activity, profile, onBack }: Props) {
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content} stickyHeaderIndices={[0]}>
       <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.back}><Text style={styles.backText}>‹</Text></Pressable>
+        <PressableScale onPress={onBack} style={styles.back}><Text style={styles.backText}>‹</Text></PressableScale>
         <Text style={styles.headerTitle}>Run</Text>
-        <Pressable onPress={() => Alert.alert('Activity actions', 'Edit, delete, export, and re-process actions require account synchronization.')} style={styles.back}><Text style={styles.more}>•••</Text></Pressable>
+        <PressableScale onPress={() => Alert.alert('Activity actions', 'Edit, delete, export, and re-process actions require account synchronization.')} style={styles.back}><Text style={styles.more}>•••</Text></PressableScale>
       </View>
       <View style={styles.userRow}>
         <View style={styles.avatar}><Text style={styles.avatarText}>{profile?.name?.charAt(0).toUpperCase() ?? 'R'}</Text></View>
@@ -41,7 +43,7 @@ export function ActivityDetail({ activity, profile, onBack }: Props) {
         </View>
       </View>
       <Text style={styles.title}>Morning Run</Text>
-      <View style={styles.kudos}><Text style={styles.kudosText}>1  Kudos on your first activity!</Text></View>
+      <Card dark style={styles.kudos}><Text style={styles.kudosText}>Ready for a stronger next run</Text></Card>
       <View style={styles.statsGrid}>
         <View style={styles.primaryStat}><Text style={styles.label}>Distance</Text><Text style={styles.value}>{(activity.distanceMeters / 1000).toFixed(2)} km</Text></View>
         <View style={styles.primaryStat}><Text style={styles.label}>Avg Pace</Text><Text style={styles.value}>{formatPace(pace)} /km</Text></View>
@@ -49,8 +51,8 @@ export function ActivityDetail({ activity, profile, onBack }: Props) {
         <View style={styles.primaryStat}><Text style={styles.label}>Elevation Gain</Text><Text style={styles.value}>{Math.round(elevation.gain)} m</Text></View>
       </View>
       <View style={styles.maxElevation}><Text style={styles.label}>Max Elevation</Text><Text style={styles.value}>{Math.round(elevation.max)} m</Text></View>
-      <View style={styles.summaryCard}>
-        <Text style={styles.sectionTitle}>Additional metrics</Text>
+      <Card style={styles.summaryCard}>
+        <SectionTitle title="Additional metrics" aside="Live data" />
         <View style={styles.metricGrid}>
           <Metric label="Calories" value="No data" />
           <Metric label="Avg heart rate" value={avgHr ? `${Math.round(avgHr)} bpm` : 'No data'} />
@@ -61,7 +63,7 @@ export function ActivityDetail({ activity, profile, onBack }: Props) {
           <Metric label="Weather" value="No data" />
           <Metric label="Gear" value="Not assigned" />
         </View>
-      </View>
+      </Card>
       <View id="map" style={styles.mapSection}>
         <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>Route</Text><Text style={styles.axisToggle}>{axis === 'distance' ? 'Distance' : 'Time'} view</Text></View>
         <View style={styles.mapWrap}>
@@ -112,26 +114,26 @@ function EmptyText({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#F4F5F2' },
+  page: { flex: 1, backgroundColor: palette.ink },
   content: { paddingBottom: 40 },
-  header: { height: 68, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: '#E4E7EC' },
-  more: { color: '#111827', fontSize: 16, fontWeight: '800' },
+  header: { height: 68, backgroundColor: palette.ink, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: palette.lineDark },
+  more: { color: palette.textInverse, fontSize: 16, fontWeight: '800' },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  backText: { color: '#111827', fontSize: 38, lineHeight: 42 },
-  headerTitle: { color: '#111827', fontSize: 21, fontWeight: '800' },
+  backText: { color: palette.textInverse, fontSize: 38, lineHeight: 42 },
+  headerTitle: { color: palette.textInverse, fontSize: 21, fontWeight: '900' },
   userRow: { flexDirection: 'row', alignItems: 'center', marginTop: 22, paddingHorizontal: 20 },
-  avatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#58D68D', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  avatarText: { color: '#07110B', fontSize: 22, fontWeight: '800' },
-  userName: { color: '#111827', fontSize: 17, fontWeight: '800' },
+  avatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: palette.lime, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  avatarText: { color: palette.ink, fontSize: 22, fontWeight: '900' },
+  userName: { color: palette.textInverse, fontSize: 17, fontWeight: '900' },
   meta: { color: '#667085', fontSize: 12, marginTop: 4 },
-  title: { color: '#111827', fontSize: 34, fontWeight: '900', marginTop: 24, paddingHorizontal: 20 },
-  kudos: { marginHorizontal: 20, marginTop: 18, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16 },
-  kudosText: { color: '#111827', fontWeight: '800', fontSize: 15 },
+  title: { color: palette.textInverse, fontSize: 34, fontWeight: '900', letterSpacing: -1, marginTop: 24, paddingHorizontal: 20 },
+  kudos: { marginHorizontal: 20, marginTop: 18, borderRadius: radii.md, padding: 16 },
+  kudosText: { color: palette.lime, fontWeight: '900', fontSize: 15 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 20, paddingHorizontal: 12 },
   primaryStat: { width: '50%', alignItems: 'center', paddingVertical: 16 },
   maxElevation: { alignItems: 'center', paddingBottom: 20 },
-  label: { color: '#667085', fontSize: 14 },
-  value: { color: '#111827', fontSize: 27, fontWeight: '900', marginTop: 4 },
+  label: { color: palette.textInverseMuted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.6 },
+  value: { color: palette.textInverse, fontSize: 27, fontWeight: '900', marginTop: 4 },
   mapWrap: { height: 340, marginHorizontal: 20, borderRadius: 18, overflow: 'hidden' },
   summaryCard: { backgroundColor: '#FFFFFF', marginHorizontal: 20, borderRadius: 18, padding: 18, marginBottom: 14 },
   sectionTitle: { color: '#111827', fontSize: 24, fontWeight: '800' },
