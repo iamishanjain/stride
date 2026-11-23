@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Split, formatPace } from '../services/ActivityAnalytics';
+import { palette, radii } from '../../../ui/theme';
 
 export function SplitsSection({ splits }: { splits: Split[] }) {
   if (!splits.length) return null;
@@ -24,7 +25,7 @@ export function SplitsSection({ splits }: { splits: Split[] }) {
 }
 
 const styles = StyleSheet.create({
-  section: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18, marginTop: 14 },
+  section: { backgroundColor: palette.surface, borderRadius: radii.lg, padding: 18, marginTop: 14, borderWidth: 1, borderColor: palette.line },
   title: { color: '#111827', fontSize: 25, fontWeight: '800' },
   header: { flexDirection: 'row', marginTop: 18, borderBottomWidth: 1, borderBottomColor: '#E4E7EC', paddingBottom: 10 },
   headerText: { width: '16%', color: '#667085', fontWeight: '700' },
@@ -32,6 +33,6 @@ const styles = StyleSheet.create({
   km: { width: '16%', color: '#667085', fontWeight: '700' },
   barArea: { flex: 1, height: 36, justifyContent: 'center' },
   pace: { color: '#667085', position: 'absolute', left: 8, zIndex: 1, fontSize: 12 },
-  bar: { height: 32, backgroundColor: '#2563EB', borderRadius: 5 },
+  bar: { height: 32, backgroundColor: palette.blue, borderRadius: 5 },
   elev: { width: 54, textAlign: 'right', color: '#667085' },
 });

@@ -1,28 +1,37 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { TrackingStatus } from '../types/tracking.types';
+import { palette, radii } from '../../../ui/theme';
+import { PressableScale } from '../../../ui/UiComponents';
+import { Loader, Shimmer } from 'panelui-native';
 
 type Props = { status: TrackingStatus; onStart: () => void; onPause: () => void; onResume: () => void; onFinish: () => void; onNew: () => void };
 
 export function TrackingControls({ status, onStart, onPause, onResume, onFinish, onNew }: Props) {
-  if (status === 'idle') return <Pressable style={styles.start} onPress={onStart}><Text style={styles.startText}>START RUN</Text></Pressable>;
-  if (status === 'finished') return <Pressable style={styles.start} onPress={onNew}><Text style={styles.startText}>NEW RUN</Text></Pressable>;
-  if (status === 'finishing') return <Text style={styles.message}>Saving your run...</Text>;
+  if (status === 'idle') return <PressableScale style={styles.start} onPress={onStart}><Text style={styles.startText}>Start run</Text></PressableScale>;
+  if (status === 'finished') return <PressableScale style={styles.start} onPress={onNew}><Text style={styles.startText}>Start a new run</Text></PressableScale>;
+  if (status === 'finishing') return (
+    <View style={styles.saving}>
+      <Loader variant="bar-cascade" size="sm" color="--color-primary" label="Saving your run" />
+      <Shimmer duration={1400} textClassName="text-sm font-semibold">Saving your run...</Shimmer>
+    </View>
+  );
   return (
     <View style={styles.controls}>
-      <Pressable style={styles.secondary} onPress={status === 'paused' ? onResume : onPause}><Text style={styles.secondaryText}>{status === 'paused' ? 'RESUME' : 'PAUSE'}</Text></Pressable>
-      <Pressable style={styles.finish} onPress={onFinish}><Text style={styles.finishText}>FINISH</Text></Pressable>
+      <PressableScale style={styles.secondary} onPress={status === 'paused' ? onResume : onPause}><Text style={styles.secondaryText}>{status === 'paused' ? 'Resume' : 'Pause'}</Text></PressableScale>
+      <PressableScale style={styles.finish} onPress={onFinish}><Text style={styles.finishText}>Finish</Text></PressableScale>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   controls: { flexDirection: 'row', gap: 12 },
-  start: { height: 58, borderRadius: 30, backgroundColor: '#58D68D', justifyContent: 'center', alignItems: 'center' },
-  startText: { color: '#07110B', fontWeight: '800', letterSpacing: 1 },
-  secondary: { flex: 1, height: 56, borderRadius: 28, borderWidth: 1, borderColor: '#34433A', justifyContent: 'center', alignItems: 'center' },
-  secondaryText: { color: '#F3F7F4', fontWeight: '700' },
-  finish: { flex: 1, height: 56, borderRadius: 28, backgroundColor: '#F97068', justifyContent: 'center', alignItems: 'center' },
-  finishText: { color: '#220B09', fontWeight: '800' },
+  start: { height: 60, borderRadius: radii.pill, backgroundColor: palette.lime, justifyContent: 'center', alignItems: 'center' },
+  startText: { color: palette.ink, fontWeight: '900', letterSpacing: 0.2, fontSize: 16 },
+  secondary: { flex: 1, height: 56, borderRadius: radii.pill, borderWidth: 1, borderColor: palette.lineDark, backgroundColor: palette.surfaceDark, justifyContent: 'center', alignItems: 'center' },
+  secondaryText: { color: palette.textInverse, fontWeight: '900' },
+  finish: { flex: 1, height: 56, borderRadius: radii.pill, backgroundColor: palette.coral, justifyContent: 'center', alignItems: 'center' },
+  finishText: { color: '#37130D', fontWeight: '900' },
   message: { color: '#A8B3AC', textAlign: 'center', padding: 20 },
+  saving: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
 });

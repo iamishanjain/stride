@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Activity } from '../types/tracking.types';
 import { formatDuration } from './ActivityCard';
 import { formatPace } from '../services/ActivityAnalytics';
+import { palette, radii } from '../../../ui/theme';
 
 export function PaceSection({ activity }: { activity: Activity }) {
   const average = activity.elapsedSeconds / (activity.distanceMeters / 1000);
@@ -32,10 +33,10 @@ export function PaceSection({ activity }: { activity: Activity }) {
 }
 
 const styles = StyleSheet.create({
-  section: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18, marginTop: 14 },
+  section: { backgroundColor: palette.surface, borderRadius: radii.lg, padding: 18, marginTop: 14, borderWidth: 1, borderColor: palette.line },
   title: { color: '#111827', fontSize: 25, fontWeight: '800', marginBottom: 14 },
   chart: { height: 180, flexDirection: 'row', alignItems: 'flex-end', borderBottomWidth: 1, borderBottomColor: '#D0D5DD', backgroundColor: '#F8FAFC', overflow: 'hidden' },
-  bar: { flex: 1, backgroundColor: '#54C8E8', marginHorizontal: 1 },
+  bar: { flex: 1, backgroundColor: palette.blue, marginHorizontal: 1 },
   metric: { height: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#E4E7EC' },
   label: { color: '#667085', fontSize: 16 },
   value: { color: '#111827', fontSize: 22, fontWeight: '800' },

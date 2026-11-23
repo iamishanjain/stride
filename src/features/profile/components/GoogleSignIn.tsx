@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { GoogleProfile } from '../types/profile.types';
+import { palette, radii } from '../../../ui/theme';
+import { PressableScale } from '../../../ui/UiComponents';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -45,8 +47,8 @@ export function GoogleSignIn({ profile, onProfile }: Props) {
         {profile.photo ? (
           <Image source={{ uri: profile.photo }} style={{ width: 42, height: 42, borderRadius: 21 }} />
         ) : (
-          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: '#58D68D', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#07110B', fontWeight: '800' }}>{profile.name.charAt(0).toUpperCase()}</Text>
+          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: palette.lime, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: palette.ink, fontWeight: '900' }}>{profile.name.charAt(0).toUpperCase()}</Text>
           </View>
         )}
         <View>
@@ -58,12 +60,12 @@ export function GoogleSignIn({ profile, onProfile }: Props) {
   }
 
   return (
-    <Pressable
+    <PressableScale
       disabled={!request}
       onPress={() => void promptAsync()}
-      style={{ height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#34433A', paddingHorizontal: 16, justifyContent: 'center' }}
+      style={{ height: 44, borderRadius: radii.pill, borderWidth: 1, borderColor: palette.lineDark, paddingHorizontal: 16, justifyContent: 'center' }}
     >
-      <Text style={{ color: '#F3F7F4', fontWeight: '700' }}>Sign in with Google</Text>
-    </Pressable>
+      <Text style={{ color: palette.textInverse, fontWeight: '800' }}>Sign in with Google</Text>
+    </PressableScale>
   );
 }
