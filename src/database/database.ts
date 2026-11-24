@@ -1,41 +1,43 @@
 import * as SQLite from 'expo-sqlite';
+import { migrations } from './migrations';
 
 let database: SQLite.SQLiteDatabase | null = null;
+let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (!database) {
-    database = await SQLite.openDatabaseAsync('stride.db');
-    await database.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS activities (
-        id TEXT PRIMARY KEY NOT NULL,
-        started_at INTEGER NOT NULL,
-        ended_at INTEGER,
-        distance_meters REAL NOT NULL,
-        elapsed_seconds REAL NOT NULL,
-        status TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS gps_points (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        activity_id TEXT NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        timestamp INTEGER NOT NULL,
-        altitude REAL,
-        accuracy REAL,
-        speed REAL,
-        heading REAL,
-        FOREIGN KEY(activity_id) REFERENCES activities(id)
-      );
-      CREATE INDEX IF NOT EXISTS gps_points_activity_timestamp
-        ON gps_points(activity_id, timestamp);
-      CREATE TABLE IF NOT EXISTS user_profile (
-        id TEXT PRIMARY KEY NOT NULL,
-        name TEXT,
-        email TEXT,
-        photo TEXT
-      );
-    `);
+  if (database) return database;
+  if (!databasePromise) {
+    databasePromise = (async () => {
+      const nextDatabase = await SQLite.openDatabaseAsync('stride.db');
+      await nextDatabase.execAsync('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
+      await runMigrations(nextDatabase);
+      database = nextDatabase;
+      return nextDatabase;
+    })().catch((error) => {
+      databasePromise = null;
+      throw error;
+    });
   }
-  return database;
+  return databasePromise;
+}
+
+async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
+  const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  const currentVersion = versionRow?.user_version ?? 0;
+
+  for (const migration of migrations) {
+    if (migration.version <= currentVersion) continue;
+    await db.withTransactionAsync(async () => {
+      await migration.up(db);
+      await db.execAsync(`PRAGMA user_version = ${migration.version};`);
+    });
+  }
+}
+
+export async function closeDatabase(): Promise<void> {
+  if (database) {
+    await database.closeAsync();
+  }
+  database = null;
+  databasePromise = null;
 }

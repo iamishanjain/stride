@@ -21,6 +21,8 @@ function GPSPointFromLocation(location: Location.LocationObject): GPSPoint {
 export function useTracking(): void {
   const subscription = useRef<Location.LocationSubscription | null>(null);
   const previousPoint = useRef<ReturnType<typeof processGPSPoint>>(null);
+  const segmentNumber = useRef(0);
+  const previousStatus = useRef(useTrackingStore.getState().status);
   const addPoint = useTrackingStore((state) => state.addPoint);
   const activityId = useTrackingStore((state) => state.activityId);
   const setCurrentLocation = useTrackingStore((state) => state.setCurrentLocation);
@@ -54,15 +56,21 @@ export function useTracking(): void {
         (location) => {
           if (!active) return;
           const point = GPSPointFromLocation(location);
+          const currentStatus = useTrackingStore.getState().status;
+          if (previousStatus.current !== 'recording' && currentStatus === 'recording') {
+            segmentNumber.current += 1;
+          }
+          previousStatus.current = currentStatus;
           setCurrentLocation(point);
           if (useTrackingStore.getState().status !== 'recording') return;
           const filteredPoint = processGPSPoint(location, previousPoint.current ?? undefined);
           if (!filteredPoint) return;
           const distance = previousPoint.current ? haversineDistanceMeters(previousPoint.current, filteredPoint) : 0;
           previousPoint.current = filteredPoint;
-          addPoint(filteredPoint, distance);
+          const segmentedPoint = { ...filteredPoint, segmentNumber: segmentNumber.current };
+          addPoint(segmentedPoint, distance);
           if (activityId) {
-            void appendGPSPoint(activityId, filteredPoint).catch((error: unknown) =>
+            void appendGPSPoint(activityId, segmentedPoint).catch((error: unknown) =>
               setError(error instanceof Error ? `GPS point could not be saved: ${error.message}` : 'GPS point could not be saved.'),
             );
           }

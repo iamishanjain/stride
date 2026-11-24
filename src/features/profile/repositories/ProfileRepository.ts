@@ -21,10 +21,14 @@ export async function getGoogleProfile(): Promise<GoogleProfile | null> {
 export async function saveGoogleProfile(profile: GoogleProfile): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    'INSERT OR REPLACE INTO user_profile (id, name, email, photo) VALUES (?, ?, ?, ?)',
+    `INSERT INTO user_profile (id, name, email, photo, bio, email_verified, created_at, updated_at)
+     VALUES (?, ?, ?, ?, NULL, 0, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name, email = excluded.email, photo = excluded.photo, updated_at = excluded.updated_at`,
     profile.id,
     profile.name,
     profile.email,
     profile.photo,
+    Date.now(),
+    Date.now(),
   );
 }

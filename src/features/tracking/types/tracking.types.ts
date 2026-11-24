@@ -12,6 +12,7 @@ export type GPSPoint = Coordinate & {
   accuracy?: number | null;
   speed?: number | null;
   heading?: number | null;
+  segmentNumber?: number;
   heartRate?: number | null;
   powerWatts?: number | null;
   cadence?: number | null;
