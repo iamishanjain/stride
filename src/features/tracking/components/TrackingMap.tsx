@@ -21,6 +21,19 @@ export function TrackingMap({ points, currentLocation, finished }: Props) {
   const map = useRef<MapView>(null);
   const [mapType, setMapType] = useState<MapType>('standard');
   const coordinates = points.map(({ latitude, longitude }) => ({ latitude, longitude }));
+  const routeSegments = React.useMemo(() => {
+    const segments = new Map<number, Coordinate[]>();
+    points.forEach((point) => {
+      const segmentNumber = 'segmentNumber' in point ? Number(point.segmentNumber ?? 0) : 0;
+      const segment = segments.get(segmentNumber) ?? [];
+      segment.push({ latitude: point.latitude, longitude: point.longitude });
+      segments.set(segmentNumber, segment);
+    });
+    return Array.from(segments.entries())
+      .sort(([left], [right]) => left - right)
+      .map(([, segment]) => segment)
+      .filter((segment) => segment.length > 1);
+  }, [points]);
 
   useEffect(() => {
     if (!currentLocation || finished) return;
@@ -47,7 +60,9 @@ export function TrackingMap({ points, currentLocation, finished }: Props) {
         mapType={mapType}
         showsUserLocation={Boolean(currentLocation)}
       >
-        {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor={palette.coral} strokeWidth={6} />}
+        {routeSegments.map((segment, index) => (
+          <Polyline key={index} coordinates={segment} strokeColor={palette.coral} strokeWidth={6} />
+        ))}
         {currentLocation && (
           <Marker coordinate={currentLocation} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
             <View style={styles.locationMarker}>
